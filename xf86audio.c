@@ -157,7 +157,7 @@ static void plugin_configure()
 	 */
 	config_load();
 
-	config_window = gtk_window_new(GTK_WINDOW_DIALOG);
+	config_window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
 	gtk_window_set_title(GTK_WINDOW(config_window),
 			_("XF86Audio Keys Configuration"));
 	gtk_signal_connect(GTK_OBJECT(config_window), "destroy", GTK_SIGNAL_FUNC(gtk_widget_destroyed), &config_window);
