@@ -1,0 +1,103 @@
+$Id: README 459 2005-06-11 22:10:31Z aqua $
+
+This is xf86audio-xmms, a plugin for XMMS to enable control over XMMS playback
+via the XF86Audio* keysyms, as produced by some keyboards with media-control
+keys.
+
+This plugin was written in response to demand from the users of Acme, GNOME2's
+multimedia key manager.  While Acme manages the association of appropriate
+keyboard scancodes with the media-control scancodes, it does not know how to
+individually control the various media players.  Instead, it arranges the
+mapping and expects those media players to listen for the XF86Audio keysyms.
+I produced a patch against XMMS to do just that, but I'm also providing this
+plugin to do the same job, since it's easier for end users than patching the
+XMMS sources (indeed, this plugin's source is nearly identical to the patch).
+
+As of GNOME 2.6, GNOME has merged Acme's functionality into the GNOME
+control-center.  This does not materially alter the function of the plugin,
+but under normal circumstances control-center grabs the volume control keysyms
+itself, making them unavailable to xmms-xf86audio.  The plugin will print a
+warning to this effect on startup if it can't get the volume keysyms, but for
+regular GNOME environments this is nonetheless probably the correct outcome.
+
+
+Build procedure:
+
+You'll need the development packages for XMMS and GTK 1.2.  On Debian systems,
+these are in the xmms-dev and libgtk1.2-dev packages respectively.
+
+That done, just run make, then make install.  By default, the build will
+attempt to install to the XMMS general plugins dir as reported by xmms-config.
+You can override this by specifying PLUGINDIR to make install, as in:
+
+	make PLUGINDIR=~/.xmms/Plugins/General install
+
+
+Usage:
+
+You first must arrange to have the media control keys on your keyboard mapped
+to the XF86Audio keysyms, if they aren't already.  Unlike the usual
+printable-character scancodes, which have been standardized on PC keyboards
+since half of forever (for which read 1980), the various "special" keys added
+by aftermarket keyboards are much less uniform.  As of this writing (April
+2003), this seems to be improving -- most of the new keyboards I've seen with
+these keys use the same set of scancodes, and XFree86 recognizes them.
+
+The simplest way to check whether you need to do any keysym adjustment is
+simply to load and enable the plugin, then try the keys and see if they work.
+If they don't, you'll need to arrange to have the keys mapped to the desired
+keysyms.  If you run GNOME 2.6 or later, I suggest using control-center, which
+can map the keys for you -- look for Applications > Preferences > Keyboard
+Shortcuts, in the GNOME Foot menu.
+
+If you don't want to use GNOME, you can find the keycodes manually with
+xev(1), then have xmodmap(1) adjust the mappings for you whenever X starts.
+xev is a little X app that dumps out the details of every event it sees.  When
+run, it pops up a window with a little square in it.  Position your mouse
+cursor over the window's close button (so you can get rid of it again without
+scrolling anything important off the screen), then press and release one of
+the media keys.  You should see something like this:
+
+KeyPress event, serial 27, synthetic NO, window 0x2a00001,
+    root 0x36, subw 0x0, time 484830179, (8,-16), root:(378,582),
+    state 0x10, keycode 162 (keysym 0x1008ff31, NoSymbol), same_screen YES,
+    XLookupString gives 0 characters:  ""
+ 
+KeyRelease event, serial 27, synthetic NO, window 0x2a00001,
+    root 0x36, subw 0x0, time 484830277, (8,-16), root:(378,582),
+    state 0x10, keycode 162 (keysym 0x1008ff31, NoSymbol), same_screen YES,
+    XLookupString gives 0 characters:  ""
+
+This output was from pressing the pause/play key on an IBM QuickConnect
+keyboard.  To map it to XF86AudioPause instead, you'd have xmodmap associate
+the keycode on the third line of the xev dump with the keysym
+'XF86AudioPause':
+
+	xmodmap -e 'keycode 162 = XF86AudioPause'
+
+... repeat this for the other audio control keys. A typical set of settings
+would be:
+
+	xmodmap -e 'keycode 161 = XF86AudioLowerVolume'
+	xmodmap -e 'keycode 163 = XF86AudioRaiseVolume'
+	xmodmap -e 'keycode 176 = XF86AudioMute'
+	xmodmap -e 'keycode 162 = XF86AudioPlay'
+	xmodmap -e 'keycode 146 = XF86AudioNext'
+	xmodmap -e 'keycode 164 = XF86AudioPrev'
+	xmodmap -e 'keycode 160 = XF86AudioStop'
+
+Play and Pause:
+
+This deserves some extra attention.  Many keyboards offer a key marked with
+both play and pause symbols.  These most often send scancode 162 (play), but X
+considers play and pause to be separate keysyms.
+
+As of 0.4.2, by default an XF86AudioPlay keysym is interpreted as a play/pause
+toggle.  Prior versions interpreted it by restarting the current song.  A
+configuration dialog is now available in the XMMS preferences to select one
+behavior or the other.  Regardless of which setting is used, XF86AudioPlay
+with a Shift modifier will restart playback of the current song.
+XF86AudioPause is interpreted as a pause/play toggle as before, and will
+initiate playback if pressed when XMMS is stopped.
+
+
